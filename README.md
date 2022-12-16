@@ -8,8 +8,10 @@
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-gl
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-eu
 
+К финальному source_ranges можно добавлять как свои блоки ip (custom_source_ranges), так и CIDR subnetworks через их имена (custom_subnets).
+
 ## Params
-На текущий момент Netbox API token захардкожен как внутренняя переменная модуля - netbox_api_token. К финальному source_ranges можно добавлять как свои блоки ip (custom_source_ranges), так и CIDR subnetworks через их имена (custom_subnets).
+На текущий момент Netbox API token захардкожен как внутренняя переменная модуля - netbox_api_token.
 
 Параметры на входе:
 - vpc_self_link - self_link или name VPC, в которой создается firewall
