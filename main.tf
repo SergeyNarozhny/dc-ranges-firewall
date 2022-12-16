@@ -41,6 +41,19 @@ data "http" "sc_am3_eu_prefixes" {
   }
 }
 
+# VPC common subnetworks
+data "google_compute_network" "main_vpc" {
+  name = var.vpc_name
+}
+data "google_compute_subnetwork" "main_vpc_subnetworks" {
+  for_each = {
+    for subnet_link in data.google_compute_network.main_vpc.subnetworks_self_links : substr(regex("\\/[\\da-z-]+$", subnet_link), 1, -1) => {
+      self_link = subnet_link
+    }
+  }
+  self_link = each.value.self_link
+}
+
 # Add randomness
 resource "random_string" "random_postfix" {
   length    = 16
@@ -70,7 +83,10 @@ locals {
   sc_am3_eu_prefixes = [
     for k, el in lookup(jsondecode(data.http.sc_am3_eu_prefixes.response_body), "results", {}) : el.prefix
   ]
-  dc_unified = concat(local.hz_prefixes, local.eq_prefixes, local.lw_prefixes, local.wz_prefixes, local.sc_am3_gl_prefixes, local.sc_am3_eu_prefixes, var.custom_source_range)
+  custom_subnetworks_added = [
+    for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
+  ]
+  dc_unified = concat(local.hz_prefixes, local.eq_prefixes, local.lw_prefixes, local.wz_prefixes, local.sc_am3_gl_prefixes, local.sc_am3_eu_prefixes, var.custom_source_ranges, local.custom_subnetworks_added)
 }
 
 # RESOURCE

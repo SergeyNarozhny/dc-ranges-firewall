@@ -25,7 +25,12 @@ variable "allow" {
     }
 }
 
-variable "custom_source_range" {
+variable "custom_source_ranges" {
+    type        = list(string)
+    default     = []
+}
+
+variable "custom_subnets" {
     type        = list(string)
     default     = []
 }
