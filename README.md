@@ -15,9 +15,9 @@
 - vpc_self_link - self_link или name VPC, в которой создается firewall
 - vpc_name - VPC name, который пойдет в description = имя фаера, по умолчанию = "common"
 - direction ("INGRESS", "EGRESS") - тип фаера, по умолчанию = "INGRESS"
+- custom_source_range (опционально) - дополнительный массив source_ranges, который добавится к общему блоку ip rages наших ЦОД
 - allow - блок allow фаера
 - target_tags - блок target_tags фаера
-- custom_source_range (опционально) - дополнительный массив source_ranges, который добавится к общему блоку ip rages наших ЦОД
 
 ## Usage example
 ### Example 1, открываем порт 8080 для тега test со всех адресов наших ЦОД
