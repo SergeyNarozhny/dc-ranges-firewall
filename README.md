@@ -9,14 +9,14 @@
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-eu
 
 ## Params
-На текущий момент Netbox API token захардкожен как внутренняя переменная модуля - netbox_api_token.
+На текущий момент Netbox API token захардкожен как внутренняя переменная модуля - netbox_api_token. К финальному source_ranges можно добавлять как свои блоки ip (custom_source_ranges), так и CIDR subnetworks через их имена (custom_subnets).
 
 Параметры на входе:
 - vpc_self_link - self_link или name VPC, в которой создается firewall
 - vpc_name - VPC name, который пойдет в description = имя фаера, по умолчанию = "common"
 - direction ("INGRESS", "EGRESS") - тип фаера, по умолчанию = "INGRESS"
 - custom_source_ranges (опционально) - дополнительный массив source_ranges, который добавится к общему блоку
-- custom_subnets (опционально, массив имен subnetworks из vpc_name) - дополнительный массив source_ranges из subnetworks cidr, который добавится к общему блоку
+- custom_subnets (опционально, массив имен subnetworks из vpc_name) - дополнительный массив source_ranges из subnetworks CIDR, который добавится к общему блоку
 - allow - блок allow фаера
 - target_tags - блок target_tags фаера
 
