@@ -1,7 +1,17 @@
 # DC Ranges Firewall
 Кастомный фаер GCP, который работает по схеме source_ranges - target_tags.
+Текущая версия собирает prefixes из Netbox со следующих API endpoints:
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-hz
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-eq
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-lw
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-wz
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-gl
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-eu
 
 ## Params
+На текущий момент Netbox API token захардкожен как внутренняя переменная модуля - netbox_api_token.
+
+Параметры на входе:
 - vpc_self_link - self_link или name VPC, в которой создается firewall
 - vpc_name - VPC name, который пойдет в description = имя фаера, по умолчанию = "common"
 - direction ("INGRESS", "EGRESS") - тип фаера, по умолчанию = "INGRESS"
