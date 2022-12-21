@@ -7,6 +7,8 @@
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-wz
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-gl
 - https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-eu
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=users-vpn-ssl
+- https://netbox.xor.mx/api/ipam/prefixes/?tag=users-office
 
 К финальному source_ranges можно добавлять как свои блоки ip (custom_source_ranges), так и CIDR subnetworks через их имена (custom_subnets).
 
