@@ -57,6 +57,22 @@ data "http" "users_office_prefixes" {
   }
 }
 
+# GKE gitlab-runners
+data "http" "gke_gitlab_runners_pods_prefixes" {
+  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=gke-common-gitlab-runners-pods"
+  request_headers = {
+    Accept = "application/json"
+    Authorization = "Token ${local.netbox_api_token}"
+  }
+}
+data "http" "gke_gitlab_runners_services_prefixes" {
+  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=gke-common-gitlab-runners-services"
+  request_headers = {
+    Accept = "application/json"
+    Authorization = "Token ${local.netbox_api_token}"
+  }
+}
+
 # VPC common subnetworks
 data "google_compute_network" "main_vpc" {
   name = var.vpc_name
@@ -105,11 +121,17 @@ locals {
   users_office_prefixes = [
     for k, el in lookup(jsondecode(data.http.users_office_prefixes.response_body), "results", {}) : el.prefix
   ]
+  gke_gitlab_runners_pods_prefixes = [
+    for k, el in lookup(jsondecode(data.http.gke_gitlab_runners_pods_prefixes.response_body), "results", {}) : el.prefix
+  ]
+  gke_gitlab_runners_services_prefixes = [
+    for k, el in lookup(jsondecode(data.http.gke_gitlab_runners_services_prefixes.response_body), "results", {}) : el.prefix
+  ]
 
   custom_subnetworks_added = [
     for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
   ]
-  dc_unified = concat(local.hz_prefixes, local.eq_prefixes, local.lw_prefixes, local.wz_prefixes, local.sc_am3_gl_prefixes, local.sc_am3_eu_prefixes, local.users_vpc_ssl_prefixes, local.users_office_prefixes, var.custom_source_ranges, local.custom_subnetworks_added)
+  dc_unified = concat(local.hz_prefixes, local.eq_prefixes, local.lw_prefixes, local.wz_prefixes, local.sc_am3_gl_prefixes, local.sc_am3_eu_prefixes, local.users_vpc_ssl_prefixes, local.users_office_prefixes, local.gke_gitlab_runners_pods_prefixes, local.gke_gitlab_runners_services_prefixes, var.custom_source_ranges, local.custom_subnetworks_added)
 }
 
 # RESOURCE
