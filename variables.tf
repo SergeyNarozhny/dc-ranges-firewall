@@ -35,6 +35,11 @@ variable "custom_subnets" {
     default     = []
 }
 
+variable "include_subnets_from_VPC_default" {
+    type        = bool
+    default     = false
+}
+
 variable "target_tags" {
     type        = list(string)
     default     = []
