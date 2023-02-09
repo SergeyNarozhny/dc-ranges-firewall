@@ -1,82 +1,21 @@
-data "http" "hz_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-hz"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
+# Netbox requests
+data "http" "prefix_requests" {
+  for_each = {
+    for label in toset(local.prefix_labels) : label => label
   }
-}
-data "http" "eq_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-eq"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "lw_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-lw"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "wz_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-wz"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "sc_am3_gl_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-gl"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "sc_am3_eu_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=dc-sc-ams3-eu"
+
+  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=${each.value}"
   request_headers = {
     Accept = "application/json"
     Authorization = "Token ${local.netbox_api_token}"
   }
 }
 
-# VPNs and office
-data "http" "users_vpc_ssl_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=users-vpn-ssl"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "users_office_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=users-office"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-
-# GKE gitlab-runners
-data "http" "gke_gitlab_runners_pods_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=gke-common-gitlab-runners-pods"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-data "http" "gke_gitlab_runners_services_prefixes" {
-  url = "https://netbox.xor.mx/api/ipam/prefixes/?tag=gke-common-gitlab-runners-services"
-  request_headers = {
-    Accept = "application/json"
-    Authorization = "Token ${local.netbox_api_token}"
-  }
-}
-
-# VPC common subnetworks
+# Project VPC
 data "google_compute_network" "main_vpc" {
   name = var.vpc_name
 }
+# Custom subnetworks in Common
 data "google_compute_subnetwork" "main_vpc_subnetworks" {
   for_each = {
     for subnet_link in data.google_compute_network.main_vpc.subnetworks_self_links : substr(regex("\\/[\\da-z-]+$", subnet_link), 1, -1) => {
@@ -85,6 +24,38 @@ data "google_compute_subnetwork" "main_vpc_subnetworks" {
   }
   self_link = each.value.self_link
 }
+# Default VPC
+data "google_compute_network" "default_VPC" {
+  name = "default"
+}
+# Subnetworks in VPC default
+data "google_compute_subnetwork" "default_vpc_subnetworks" {
+  for_each = toset(data.google_compute_network.default_VPC.subnetworks_self_links)
+  self_link = each.value
+}
+
+locals {
+  netbox_api_token = "8405c3521c42b508656ec0c00dd3a9fbe746d034"
+  prefix_labels = ["dc-hz", "dc-eq", "dc-lw", "dc-wz", "dc-sc-ams3-gl", "dc-sc-ams3-eu", "users-vpn-ssl", "users-office", "gke-common-gitlab-runners-pods", "gke-common-gitlab-runners-services"]
+
+  custom_subnetworks_ranges_added = [
+    for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
+  ]
+  default_VPC_subnetworks_ranges_added = [
+    for subnet in data.google_compute_subnetwork.default_vpc_subnetworks : subnet.ip_cidr_range
+  ]
+
+  dc_unified = flatten([
+    [
+      for label, res in data.http.prefix_requests : [
+        for k, el in lookup(jsondecode(res.response_body), "results", {}) : el.prefix
+      ]
+    ],
+    var.custom_source_ranges,
+    local.custom_subnetworks_ranges_added,
+    var.include_subnets_from_VPC_default ? compact(local.default_VPC_subnetworks_ranges_added) : []
+  ])
+}
 
 # Add randomness
 resource "random_string" "random_postfix" {
@@ -92,46 +63,6 @@ resource "random_string" "random_postfix" {
   lower     = true
   upper     = false
   special   = false
-}
-
-locals {
-  netbox_api_token = "8405c3521c42b508656ec0c00dd3a9fbe746d034"
-
-  hz_prefixes = [
-    for k, el in lookup(jsondecode(data.http.hz_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  eq_prefixes = [
-    for k, el in lookup(jsondecode(data.http.eq_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  lw_prefixes = [
-    for k, el in lookup(jsondecode(data.http.lw_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  wz_prefixes = [
-    for k, el in lookup(jsondecode(data.http.wz_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  sc_am3_gl_prefixes = [
-    for k, el in lookup(jsondecode(data.http.sc_am3_gl_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  sc_am3_eu_prefixes = [
-    for k, el in lookup(jsondecode(data.http.sc_am3_eu_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  users_vpc_ssl_prefixes = [
-    for k, el in lookup(jsondecode(data.http.users_vpc_ssl_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  users_office_prefixes = [
-    for k, el in lookup(jsondecode(data.http.users_office_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  gke_gitlab_runners_pods_prefixes = [
-    for k, el in lookup(jsondecode(data.http.gke_gitlab_runners_pods_prefixes.response_body), "results", {}) : el.prefix
-  ]
-  gke_gitlab_runners_services_prefixes = [
-    for k, el in lookup(jsondecode(data.http.gke_gitlab_runners_services_prefixes.response_body), "results", {}) : el.prefix
-  ]
-
-  custom_subnetworks_added = [
-    for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
-  ]
-  dc_unified = concat(local.hz_prefixes, local.eq_prefixes, local.lw_prefixes, local.wz_prefixes, local.sc_am3_gl_prefixes, local.sc_am3_eu_prefixes, local.users_vpc_ssl_prefixes, local.users_office_prefixes, local.gke_gitlab_runners_pods_prefixes, local.gke_gitlab_runners_services_prefixes, var.custom_source_ranges, local.custom_subnetworks_added)
 }
 
 # RESOURCE
