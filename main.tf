@@ -30,8 +30,12 @@ data "google_compute_network" "default_VPC" {
 }
 # Subnetworks in VPC default
 data "google_compute_subnetwork" "default_vpc_subnetworks" {
-  for_each = toset(data.google_compute_network.default_VPC.subnetworks_self_links)
+  for_each = toset(data.google_compute_network.default_VPC.subnetworks_self_links == null ? [] : data.google_compute_network.default_VPC.subnetworks_self_links)
   self_link = each.value
+
+  depends_on = [
+    data.google_compute_network.default_VPC
+  ]
 }
 
 locals {
