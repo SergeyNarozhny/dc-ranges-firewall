@@ -40,7 +40,7 @@ data "google_compute_subnetwork" "default_vpc_subnetworks" {
 
 locals {
   netbox_api_token = "8405c3521c42b508656ec0c00dd3a9fbe746d034"
-  prefix_labels = ["dc-hz", "dc-eq", "dc-lw", "dc-wz", "dc-sc-ams3-gl", "dc-sc-ams3-eu", "users-vpn-ssl", "users-office", "gke-common-gitlab-runners-pods", "gke-common-gitlab-runners-services"]
+  prefix_labels = ["dc-hz", "dc-eq", "dc-lw", "dc-wz", "dc-sc-ams3-gl", "dc-sc-ams3-eu", "users-vpn-ssl", "users-office", "gke-common-gitlab-runners-pods", "gke-common-gitlab-runners-services","azure","aws"]
 
   custom_subnetworks_ranges_added = [
     for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
