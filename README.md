@@ -22,6 +22,7 @@
 - custom_source_ranges (опционально) - дополнительный массив source_ranges, который добавится к общему блоку
 - custom_subnets (опционально, массив имен subnetworks из vpc_name) - дополнительный массив source_ranges из subnetworks CIDR, который добавится к общему блоку
 - include_subnets_from_VPC_default (опционально, по умолчанию false) - нужно ли включить в блок source_ranges массив всех ip_cidr_range из подсетей VPC default
+- include_subnets_from_main_VPC (опционально, по умолчанию false) - нужно ли включить в блок source_ranges массив всех ip_cidr_range из подсетей VPC vpc_self_link
 - allow - блок allow фаера
 - target_tags - блок target_tags фаера
 

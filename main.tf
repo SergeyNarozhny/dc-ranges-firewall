@@ -45,6 +45,9 @@ locals {
   custom_subnetworks_ranges_added = [
     for subnet in var.custom_subnets : data.google_compute_subnetwork.main_vpc_subnetworks[subnet].ip_cidr_range
   ]
+  all_subnetworks_ranged_added = [
+    for subnet in data.google_compute_subnetwork.main_vpc_subnetworks : subnet.ip_cidr_range
+  ]
   default_VPC_subnetworks_ranges_added = [
     for subnet in data.google_compute_subnetwork.default_vpc_subnetworks : subnet.ip_cidr_range
   ]
@@ -56,7 +59,7 @@ locals {
       ]
     ],
     var.custom_source_ranges,
-    local.custom_subnetworks_ranges_added,
+    var.include_subnets_from_main_VPC ? local.all_subnetworks_ranged_added : local.custom_subnetworks_ranges_added,
     var.include_subnets_from_VPC_default ? compact(local.default_VPC_subnetworks_ranges_added) : []
   ])
 }
